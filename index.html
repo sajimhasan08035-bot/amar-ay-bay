@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon-192.png" type="image/png">
+<meta name="description" content="সৌদি রিয়ালে মাসিক আয়-ব্যয়ের অফলাইন হিসাব">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<title>আমার আয়-ব্যয় | SAR</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121d2e;--line:#26364d;--text:#eef4ff;--muted:#9aabc2;--green:#48d597;--red:#ff7d87;--blue:#77aaff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,"Noto Sans Bengali",sans-serif}
+main{max-width:760px;margin:auto;padding:18px 14px 36px}h1{font-size:25px;margin:4px 0}h2{font-size:17px;margin:0 0 12px}.sub{color:var(--muted);font-size:13px;margin:5px 0 18px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px}.metric{font-size:22px;font-weight:750;margin-top:7px;overflow-wrap:anywhere}.label{font-size:12px;color:var(--muted)}.green{color:var(--green)}.red{color:var(--red)}.blue{color:var(--blue)}
+.panel{margin-top:14px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{font-size:12px;color:var(--muted);display:block;margin:0 0 5px}input,select,button{font:inherit}input,select{width:100%;background:#0b1423;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px;min-width:0}button{border:0;border-radius:10px;padding:11px 13px;font-weight:700;cursor:pointer}.primary{background:var(--green);color:#082015}.secondary{background:#25364d;color:var(--text)}.danger{background:#4b222b;color:#ffdce0}.full{width:100%;margin-top:10px}.row{display:flex;gap:8px;align-items:center;justify-content:space-between}.history-item{border-top:1px solid var(--line);padding:12px 0;display:flex;gap:10px;justify-content:space-between;align-items:center}.history-item:first-child{border-top:0}.small{font-size:12px;color:var(--muted);margin-top:3px}.amount{font-weight:750;white-space:nowrap}.empty{color:var(--muted);font-size:13px;padding:10px 0}.actions{display:flex;gap:6px}.actions button{padding:7px 9px;font-size:12px}.notice{font-size:12px;color:var(--muted);line-height:1.6;margin-top:12px}.monthrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sectiongap{margin-top:14px}@media(max-width:430px){.metric{font-size:19px}.formgrid{grid-template-columns:1fr 1fr}.card{padding:12px}}
+</style>
+</head>
+<body>
+<main>
+<h1>আমার আয়-ব্যয়</h1>
+<div class="sub">সৌদি রিয়াল (SAR) · অফলাইনে হিসাব রাখুন</div>
+<div class="cards">
+ <div class="card"><div class="label">এই মাসের আয়</div><div class="metric green" id="incomeTotal">0.00 SAR</div></div>
+ <div class="card"><div class="label">এই মাসের খরচ</div><div class="metric red" id="expenseTotal">0.00 SAR</div></div>
+ <div class="card"><div class="label">অবশিষ্ট টাকা</div><div class="metric blue" id="balanceTotal">0.00 SAR</div></div>
+ <div class="card"><div class="label">সঞ্চয় (আয় − খরচ)</div><div class="metric" id="savingTotal">0.00 SAR</div></div>
+</div>
+
+<section class="panel">
+<h2>মাস নির্বাচন</h2>
+<div class="monthrow">
+<div><label for="reportMonth">যে মাসের হিসাব দেখবেন</label><input id="reportMonth" type="month"></div>
+<div><label for="salary">মাসিক বেতন (SAR)</label><input id="salary" type="number" min="0" step="0.01" value="1200"></div>
+</div>
+<button class="primary full" id="saveSalary">বেতন সংরক্ষণ</button>
+<div class="notice">বেতন আয় হিসেবে স্বয়ংক্রিয়ভাবে যোগ হবে। বাড়িতে টাকা পাঠালে সেটি খরচ হিসেবে লিখুন—তাহলে হাতে থাকা টাকার হিসাব ঠিক থাকবে।</div>
+</section>
+
+<section class="panel">
+<h2 id="formTitle">নতুন খরচ যোগ করুন</h2>
+<form id="entryForm">
+<div class="formgrid">
+ <div><label for="type">ধরন</label><select id="type"><option value="expense">খরচ</option><option value="income">অতিরিক্ত আয়</option></select></div>
+ <div><label for="amount">টাকার পরিমাণ (SAR)</label><input id="amount" type="number" min="0.01" step="0.01" placeholder="যেমন 25" required></div>
+ <div><label for="category">ক্যাটাগরি</label><select id="category"><option>খাবার</option><option>বাড়িতে পাঠানো</option><option>সিম / ইন্টারনেট</option><option>যাতায়াত</option><option>ব্যক্তিগত খরচ</option><option>বাসা / মেস</option><option>কেনাকাটা</option><option>ঋণ পরিশোধ</option><option>চিকিৎসা</option><option>অন্যান্য</option></select></div>
+ <div><label for="date">তারিখ</label><input id="date" type="date" required></div>
+ <div style="grid-column:1/-1"><label for="note">বিবরণ (ঐচ্ছিক)</label><input id="note" maxlength="100" placeholder="যেমন: বাজার, ডাটা প্যাক"></div>
+</div>
+<button class="primary full" type="submit" id="submitEntry">খরচ সংরক্ষণ</button>
+<button class="secondary full" type="button" id="cancelEdit" hidden>এডিট বাতিল</button>
+</form>
+</section>
+
+<section class="panel">
+<div class="row"><h2 style="margin:0">লেনদেনের তালিকা</h2><button class="secondary" id="exportBtn">ব্যাকআপ</button></div>
+<div class="small" id="listCaption"></div>
+<div id="entries"></div>
+<div class="notice">ব্যাকআপ চাপলে আপনার হিসাবের JSON ফাইল ডাউনলোড হবে। ফোনের ব্রাউজারের ডেটা মুছে ফেললে হিসাব হারাতে পারে, তাই মাঝে মাঝে ব্যাকআপ রাখুন।</div>
+</section>
+<section class="panel">
+<h2>ডেটা ফিরিয়ে আনুন</h2>
+<label for="importFile">আগের ব্যাকআপ JSON ফাইল নির্বাচন করুন</label>
+<input id="importFile" type="file" accept=".json,application/json">
+<button class="secondary full" id="importBtn">ব্যাকআপ ফিরিয়ে আনুন</button>
+<button class="danger full" id="clearBtn">সব হিসাব মুছে ফেলুন</button>
+</section>
+<div class="notice">এই অ্যাপটি আপনার এই ডিভাইসের ব্রাউজারে তথ্য সংরক্ষণ করে। কোনো অ্যাকাউন্ট বা ইন্টারনেট প্রয়োজন নেই। অন্য ফোনে নিজে থেকে সিঙ্ক হবে না।</div>
+</main>
+<div id="installWrap" style="max-width:760px;margin:0 auto;padding:0 14px 24px;display:none">
+  <button id="installBtn" class="primary full">ফোনে অ্যাপ ইনস্টল করুন</button>
+  <div id="installHelp" class="notice"></div>
+</div>
+<script>
+const KEY='mahim_income_expense_v1';
+const $=id=>document.getElementById(id);
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const monthNow=()=>today().slice(0,7);
+let data={salaryByMonth:{},entries:[]},editingId=null;
+try{const saved=localStorage.getItem(KEY);if(saved){const parsed=JSON.parse(saved);if(parsed&&Array.isArray(parsed.entries))data={salaryByMonth:parsed.salaryByMonth||{},entries:parsed.entries}}}catch(e){}
+function persist(){localStorage.setItem(KEY,JSON.stringify(data))}
+function money(n){return (Number(n)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+' SAR'}
+function escapeHTML(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function selectedMonth(){return $('reportMonth').value||monthNow()}
+function salaryFor(m){return Number(data.salaryByMonth[m]??1200)}
+function monthEntries(m){return data.entries.filter(e=>e.date&&e.date.startsWith(m))}
+function render(){
+ const m=selectedMonth(), rows=monthEntries(m), salary=salaryFor(m);
+ $('salary').value=salary;
+ const exp=rows.filter(e=>e.type==='expense').reduce((s,e)=>s+Number(e.amount),0);
+ const extra=rows.filter(e=>e.type==='income').reduce((s,e)=>s+Number(e.amount),0);
+ $('incomeTotal').textContent=money(salary+extra);
+ $('expenseTotal').textContent=money(exp);
+ $('balanceTotal').textContent=money(salary+extra-exp);
+ $('savingTotal').textContent=money(salary+extra-exp);
+ $('listCaption').textContent=m+' · '+rows.length+'টি লেনদেন';
+ const list=$('entries');
+ if(!rows.length){list.innerHTML='<div class="empty">এই মাসে এখনো কোনো খরচ যোগ করা হয়নি।</div>';return}
+ list.innerHTML=[...rows].sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).map(e=>`<div class="history-item"><div style="min-width:0"><div>${escapeHTML(e.category)}${e.note?' · '+escapeHTML(e.note):''}</div><div class="small">${escapeHTML(e.date)} · ${e.type==='expense'?'খরচ':'অতিরিক্ত আয়'}</div></div><div style="text-align:right"><div class="amount ${e.type==='expense'?'red':'green'}">${e.type==='expense'?'−':'+'}${money(e.amount)}</div><div class="actions" style="justify-content:flex-end;margin-top:5px"><button class="secondary" data-edit="${e.id}">এডিট</button><button class="danger" data-delete="${e.id}">মুছুন</button></div></div></div>`).join('');
+}
+$('reportMonth').value=monthNow();$('date').value=today();
+$('saveSalary').addEventListener('click',()=>{const v=Number($('salary').value);if(!Number.isFinite(v)||v<0){alert('সঠিক বেতনের পরিমাণ লিখুন।');return}data.salaryByMonth[selectedMonth()]=v;persist();render();alert('বেতন সংরক্ষণ হয়েছে।')});
+$('reportMonth').addEventListener('change',render);
+$('entryForm').addEventListener('submit',e=>{e.preventDefault();const amount=Number($('amount').value);if(!Number.isFinite(amount)||amount<=0){alert('সঠিক টাকার পরিমাণ লিখুন।');return}
+const entry={id:editingId??Date.now(),type:$('type').value,amount,category:$('category').value,date:$('date').value,note:$('note').value.trim()};
+if(!entry.date){alert('তারিখ নির্বাচন করুন।');return}
+if(editingId!==null){data.entries=data.entries.map(x=>x.id===editingId?entry:x)}else data.entries.push(entry);
+persist();resetForm();render()});
+function resetForm(){$('entryForm').reset();$('date').value=today();$('type').value='expense';editingId=null;$('formTitle').textContent='নতুন খরচ যোগ করুন';$('submitEntry').textContent='খরচ সংরক্ষণ';$('cancelEdit').hidden=true}
+$('cancelEdit').addEventListener('click',resetForm);
+$('entries').addEventListener('click',e=>{const edit=e.target.closest('[data-edit]'),del=e.target.closest('[data-delete]');if(edit){const id=Number(edit.dataset.edit),item=data.entries.find(x=>x.id===id);if(!item)return;editingId=id;$('type').value=item.type;$('amount').value=item.amount;$('category').value=item.category;$('date').value=item.date;$('note').value=item.note||'';$('formTitle').textContent='লেনদেন এডিট করুন';$('submitEntry').textContent='পরিবর্তন সংরক্ষণ';$('cancelEdit').hidden=false;window.scrollTo({top:0,behavior:'smooth'})}else if(del){const id=Number(del.dataset.delete);if(confirm('এই লেনদেনটি মুছে ফেলবেন?')){data.entries=data.entries.filter(x=>x.id!==id);persist();render()}}});
+$('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='amar-ay-bay-backup-'+today()+'.json';a.click();URL.revokeObjectURL(url)});
+$('importBtn').addEventListener('click',async()=>{const f=$('importFile').files[0];if(!f){alert('আগে একটি ব্যাকআপ ফাইল নির্বাচন করুন।');return}try{const obj=JSON.parse(await f.text());if(!obj||!Array.isArray(obj.entries)||typeof obj.salaryByMonth!=='object')throw Error();if(!confirm('বর্তমান হিসাবের বদলে ব্যাকআপের হিসাব বসবে। চালিয়ে যাবেন?'))return;data={salaryByMonth:obj.salaryByMonth||{},entries:obj.entries};persist();render();alert('ব্যাকআপ ফিরিয়ে আনা হয়েছে।')}catch(e){alert('ফাইলটি সঠিক ব্যাকআপ নয়।')}});
+$('clearBtn').addEventListener('click',()=>{if(confirm('সতর্কতা: সব আয়-ব্যয়ের হিসাব স্থায়ীভাবে মুছে যাবে। নিশ্চিত?')){data={salaryByMonth:{},entries:[]};persist();resetForm();render()}});
+render();
+
+// PWA install prompt (supported Android browsers)
+let deferredInstallPrompt = null;
+const installWrap = document.getElementById('installWrap');
+const installBtn = document.getElementById('installBtn');
+const installHelp = document.getElementById('installHelp');
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  installWrap.style.display = 'block';
+  installHelp.textContent = 'বোতাম চাপলে ইনস্টল করার অপশন আসবে।';
+});
+installBtn?.addEventListener('click', async () => {
+  if (!deferredInstallPrompt) {
+    installHelp.textContent = 'Chrome মেনু (⋮) খুলে “Install app” বা “Add to Home screen” নির্বাচন করুন।';
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+});
+window.addEventListener('appinstalled', () => {
+  installWrap.style.display = 'none';
+});
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(err => {
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+}
+</script>
+</body></html>
